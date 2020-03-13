@@ -1,74 +1,88 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-formatTime = () => {
-  format = () => {
-  let minutes = Math.floor(this.time / 60);
-  let seconds = this.time - (minutes * 60);
-  if (minutes < 10) {minutes = "0"+minutes;}
-  if (seconds < 10) {seconds = "0"+seconds;}
-  return minutes+':'+seconds;
-  }   
-};
-
-step = () => {
-  for (i=time; i=0; i--) {
-    if (state.status === 'work') {
-      state.status = 'rest';
-      time = 20;
-      playBell();
-    } else {
-      state.status = 'work';
-      time = 1200;
-      playBell();
-    }
-  }
-};
-
-startTimer = () => {
-time = 1200;
-  this.setState({
-    timer: setInterval(this.step, 1000),
-  });
-state.status = 'work';
-};
-
-stopTimer = () => {
-  window.clearInterval(timer);
-  state.time = 0;
-  state.status = 'off';
-};
-
-closeApp = () => {
-  window.close();
-};
-
-playBell = () => {
-  const bell = new Audio('./sounds/bell.wav');
-  bell.play();
-};
-
 class App extends React.Component {
 
-render() {
+  constructor() {
+    super()
+    this.state = {
+      status: 'off',
+      time: 0,
+      timer: null
+    };
+  }
 
-  const { status } = this.state;
+  step = () => {
+    this.setState({
+      time: this.state.time - 1,
+    });
+    if (this.state.time === 0) {
+      if (this.state.status === 'work'){
+        this.setState({
+          status: 'rest',
+          time: 20,
+        })
+        this.playBell()
+      }
+      else if (this.state.status === 'rest'){
+        this.setState({
+          status: 'work',
+          time: 1200,
+        })
+        this.playBell()
+      }
+    }
+  };
 
-  step();
+  startTimer = () => {
+    this.setState({
+      timer: setInterval(this.step, 1000),
+      time: 1200,
+      status: 'work',
+    });
+  };
 
-  return (
-    <div>
-      <h1>Protect your eyes</h1>
-      {(status === 'off') && <AppDescription />}
-      {(status === 'work') && <img src="./images/work.png" />}
-      {(status === 'rest') && <img src="./images/rest.png" />}
-      {(status !== 'off') && <div className="timer">{formatTime}</div>}
-      {(status === 'off') && <button className="btn" onClick={startTimer}>Start</button>}
-      {(status !== 'off') && <button className="btn" onCLick={stopTimer}>Stop</button>}
-      <button className="btn btn-close" onClick={closeApp}>X</button>
-    </div>
-  )
- };
-}
+  stopTimer = () => {
+    this.setState({
+      status: 'off',
+      time: 0,
+    })
+    clearInterval(this.state.timer);
+  }
+
+  formatTime = (time) => {
+    let minutes = Math.floor(time/60)
+    let seconds = time-(minutes*60)
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return minutes+':'+seconds;
+  };
+
+  closeApp = () => window.close();
+
+  playBell = () => {
+    var audioElement = new Audio('./sounds/bell.wav');
+    audioElement.play();
+  }
+
+  render() {
+
+    const { status, time} = this.state;
+
+    return (
+      <div>
+        <h1>Protect your eyes</h1>
+        {(status === 'off') && <p>According to optometrists in order to save your eyes, you should follow the 20/20/20. It means you should to rest your eyes every 20 minutes for 20 seconds by looking more than 20 feet away.</p>}
+        {(status === 'off') && <p>This app will help you track your time and inform you when it's time to rest.</p>}
+        {(status === 'work') && <img src="./images/Work.png" />}
+        {(status === 'rest') && <img src="./images/Rest.png" />}
+        {(status !== 'off') && <div className="timer">{this.formatTime(time)}</div>}
+        {(status === 'off') && <button className="btn" onClick={(e) => this.startTimer(e)}>Start</button>}
+        {(status !== 'off') && <button className="btn" onClick={(e) => this.stopTimer(e)}>Stop</button>}
+        <button className="btn btn-close" onClick={(e) => this.closeApp(e)}>X</button>
+      </div>
+    )
+  }
+};
 
 render(<App />, document.querySelector('#app'));
